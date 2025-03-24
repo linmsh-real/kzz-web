@@ -1,1 +1,159 @@
-test 111
+<html>
+<head>
+<title>可转债排行</title>
+<meta charset="UTF-8">
+<!-- <link rel="shortcut icon" href="https://static.xyzq.cn/witcat/utclient_test/dev.ico"> --><script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- <script type="text/javascript" src="js/common.js"></script> -->
+<script type="text/javascript">
+$(document).ready(function(){		//https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData?page=1&num=20&sort=changepercent&asc=0&node=hskzz_z&date=2025-03-11&_s_r_a=init
+	/**
+	symbol 债券代码（如 123456.SH） 
+	name 债券名称 
+	trade 最新价 
+	pricechange 涨跌额 
+	changepercent 涨跌幅 
+	buy 买入价 
+	sell 卖出价 
+	settlement 昨日收盘价 
+	open 今日开盘价 
+	high 最高价 
+	low 最低价 
+	volume 成交量 
+	amount 成交金额 
+	*/
+	var url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData'; 
+	var param={
+		page:1,
+		num:20,
+		sort:'changepercent',
+		asc:0,
+		node:'hskzz_z'
+		//node:hs_z
+		//date:2025-03-11
+		//_s_r_a:init
+	};
+	$("#btn_changepercent").click(function(){
+		console.log('======根据涨跌幅排名-开始=======');
+		var resultList = ajaxRequest(url, param), result='', ticktime;
+		for(var i=0; i<resultList.length; i++) {
+			var data=resultList[i], name=data.name;
+			name = name.substring(0, name.length-2);
+			if(result != '') {
+				name='\n'+name;
+			} else {
+				ticktime=data.ticktime;
+			}
+			result+=name;
+			console.log(data);
+		}
+		$("#result_changepercent").val(result);
+		$("#ticktime_changepercent").html(ticktime);
+		console.log('======根据涨跌幅排名-结束=======');
+	});
+	$("#btn_changepercent").click();
+	$("#copy_changepercent").click(function(){
+		copyText('result_changepercent', 'tips_changepercent', '复制成功');
+	});
+	
+	var amountParam = $.extend({}, param, {sort:'amount'}), amountDivisor = 100000000;
+	$("#btn_amount").click(function(){
+		console.log('======根据成交额排名-开始=======');
+		var resultList = ajaxRequest(url, amountParam), result='', ticktime;
+		for(var i=0; i<resultList.length; i++) {
+			var data=resultList[i], name=data.name, amount=data.amount;
+			name = name.substring(0, name.length-2);
+			amount = amount/amountDivisor;
+			if(amount>1) {
+				amount = Math.round(amount);
+			} else {
+				amount = Number(amount.toFixed(2)); 
+			}
+			if(result != '') {
+				name='\n'+name;
+			} else {
+				ticktime=data.ticktime;
+			}
+			result+=name+amount;
+			console.log(data);
+		}
+		$("#result_amount").val(result);
+		$("#ticktime_amount").html(ticktime);
+		console.log('======根据成交额排名-结束=======');
+	});
+	$("#btn_amount").click();
+	$("#copy_amount").click(function(){
+		copyText('result_amount', 'tips_amount', '复制成功');
+	});
+});
+
+function ajaxRequest(url, param) {
+	var htmlobj=$.ajax({
+		url:url,
+		data:param,
+		async:false,
+	});
+	var result=JSON.parse(htmlobj.responseText);
+	return result;
+}
+
+
+async function copyText(objId, tipsObjId, tips) {
+	// 获取文本框元素
+	const input = document.getElementById(objId);
+
+	try {
+	  // 复制文本到剪贴板
+	  await navigator.clipboard.writeText(input.value);
+
+	  // 提示用户
+	  if(tipsObjId) {
+		  $('#'+tipsObjId).parent().find('td').html('');
+		  $('#'+tipsObjId).html(tips);
+	  }
+	} catch (err) {
+	  // 处理错误
+	  console.error("复制失败: ", err);
+	  alert("复制失败，请手动复制");
+	}
+}
+</script>
+</head>
+<body>
+
+<table style="margin-left: 33%;">
+	<tr>
+		<td></td>
+		<td><h2>涨跌幅排名</h2></td>
+		<td style="margin-left: 30px;"><h2>成交额排名</h2></td>
+	</tr>
+	<tr>
+		<td></td>
+		<td>
+			<textarea id="result_changepercent" style="width: 100px; height: 350px;"></textarea>
+			<br><br>
+			<button id="copy_changepercent" type="button">复制</button>
+			<br><br>
+			<button id="btn_changepercent" type="button">get</button>
+		</td>
+		<td>
+			<textarea id="result_amount" style="width: 100px; height: 350px;"></textarea>
+			<br><br>
+			<button id="copy_amount" type="button">复制</button>
+			<br><br>
+			<button id="btn_amount" type="button">get</button>
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td id="tips_changepercent"></td>
+		<td id="tips_amount"></td>
+	</tr>
+	<tr>
+		<td>交易时间：</td>
+		<td id="ticktime_changepercent"></td>
+		<td id="ticktime_amount"></td>
+	</tr>
+<table>
+
+</body>
+</html>
