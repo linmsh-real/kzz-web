@@ -2,68 +2,21 @@
 <html>
 <head>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <style>
-		/* 默认样式（移动端优先） */
-        table {
-            border-collapse: collapse;
-            /* width: 100%; */
-			margin: 12px;
-        }
-  
-		/* 电脑端样式（宽度768px以上） */
-		@media (min-width: 768px) {
-			table {
-				/*width: 98%;  或者固定宽度如800px */
-				/**居中*/
-				margin-left: auto;
-				margin-right: auto;
-				font-size: 18px;
-			}
-		
-			/* 涨幅榜最近几日出现的次数 */
-			#changepercentNumber {
-				/* width: 70%; */
-			}
-		}
-        th, td {
-            border: 1px solid #eee;
-            padding: 8px;
-            text-align: center;
-			white-space: nowrap; /* 禁止换行 */
-        }
-		
-        /* 为每列设置不同的背景色 */
-		.thCol1 {background-color: #ff5555!important;}
-		.thCol2 {background-color: rgb(255 192 0)!important;}
-		.thCol3 {background-color: rgb(255 255 0)!important;}
-		.thCol4 {background-color: rgb(0 176 80)!important;}
-		.thCol5 {background-color: rgb(0 176 240)!important;}
-        .col1 { background-color: rgb(220 228 234); }
-        .col2 { background-color: rgb(248 202 171); }
-		/* 奇数列样式 */
-		.chartAll td:nth-child(odd), .chartAll th:nth-child(odd) {
-			background-color: rgb(220 228 234); /* 浅蓝色#e6f7ff */
-		}
-
-		/* 偶数列样式 */
-		.chartAll td:nth-child(even), .chartAll th:nth-child(even) {
-			background-color: rgb(248 202 171); /* 浅橙色#fff2e6 */
-		}
-		
-		/* 最近十天涨幅榜明细 */
-		#changepercentRecently td:nth-child(1) {
-			background-color: #eee;
-			width:45px;
-		}
-		/* 最近十天涨幅榜明细-其他列设置相同宽度 */
-		#changepercentRecently td:not(:nth-child(1)) {
-			width:90px;
-		}
-    </style>
+	<link href="kzz.css" rel="stylesheet" media="all">
 	<script type="text/javascript">
 		$(document).ready(function(){
 			//腾讯财经获取股票最近一个交易日
 			getLatestTradingDay();
+			//打印
+			$('#chartAllPrint').click(function(){
+				printTable('chartAll');
+			});
+			$('#changepercentNumberPrint').click(function(){
+				printTable('changepercentNumber');
+			});
+			$('#changepercentRecentlyPrint').click(function(){
+				printTable('changepercentRecently');
+			});
 		});
 		var amountDivisor = 100000000;
 		//获取历史数据
@@ -224,7 +177,7 @@
 				changepercentData=data.changepercentData, amountData=data.amountData;
 				amountTotal = amountTotal/amountDivisor;
 				amountTotal = Math.round(amountTotal);
-				headContent += '<th colspan="2" class="thCol'+(thColNumber++)+'">' + parseInt(tradingDay.substring(4, 6)) + '-' + tradingDay.substring(6, 8) + '（'+amountTotal+'亿元）</th>\n';
+				headContent += '<th colspan="2" class="thCol'+(++thColNumber)+'">' + parseInt(tradingDay.substring(4, 6)) + '-' + tradingDay.substring(6, 8) + '（'+amountTotal+'亿元）</th>\n';
 				secContent +='<td class="col1">涨幅（%）</td>\n<td class="col2">成交（亿）</td>\n';
 				for(var j=0; j<changepercentData.length; j++) {
 					var changepercent = Math.round(changepercentData[j].changepercent);
@@ -249,7 +202,7 @@
 			}
 			headContent += '</tr>';
 			secContent += '</tr>';
-			$('.chartAll').html(headContent + secContent + dataContent.join(''));
+			$('#chartAll').html(headContent + secContent + dataContent.join(''));
 		}
 		//渲染过去五/十个交易日该可转债上涨幅榜前20的次数
 		function makeChangepercentNumberData(kzzDatas, kzzDataLength) {
@@ -362,12 +315,28 @@
 			}
 			return null;
 		}
+		//动态打印
+		function printTable(printableId) {
+		  printJS({
+			printable: printableId, // 表格 ID
+			type: 'html',
+			//style: 'table { border-collapse: collapse; } th, td { border: 1px solid #000; }'
+			//targetStyles:['*'],
+			//scanStyles:false
+			css:'kzz.css'
+		  });
+		}
 	</script>
+	<!-- 打印控件 -->
+	<script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
+	<link rel="stylesheet" href="https://printjs-4de6.kxcdn.com/print.min.css">
 </head>
 <body>
 
-<table class="chartAll">
+<table id="chartAll">
 </table>
+<br>
+<button id="chartAllPrint" type="button">打印涨幅榜</button>
 
 <br>
 <table id="changepercentNumber">
@@ -380,13 +349,17 @@
         <td>五日次数</td>
         <td>可转债</td>
         <td>十日次数</td>
-        <td id="latestDate">3.21前20</td>
+        <td id="latestDate"></td>
     </tr>
 </table>
+<br>
+<button id="changepercentNumberPrint" type="button">打印次数</button>
 
 <br>
 <table id="changepercentRecently">
 </table>
+<br>
+<button id="changepercentRecentlyPrint" type="button">打印明细</button>
 
 </body>
 </html>
