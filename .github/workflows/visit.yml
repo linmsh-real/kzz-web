@@ -1,7 +1,7 @@
 name: Puppeteer Visit HTML
 on:
   schedule:
-    - cron: '35 8 * * *'  # 每天，五个参数时：分 时 日 月 周，也可六个或七个参数
+    - cron: '10 9 * * *'  # 每天，五个参数时：分 时 日 月 周，也可六个或七个参数
   workflow_dispatch:
 
 jobs:
@@ -49,7 +49,8 @@ jobs:
           })();
           EOF
 
-      - name: Upload screenshot
+      - name: Upload Screenshot
+        uses: actions/upload-artifact@v4  # 使用 v4 版本
         if: always()  # 即使失败也上传日志
         uses: actions/upload-artifact@v3
         with:
