@@ -1,0 +1,24 @@
+name: Schedule Puppeteer Task
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # 选择合适的 Node.js 版本
+
+      - name: Install dependencies
+        run: npm install puppeteer
+
+      - name: Run Puppeteer script
+        run: node schedule-scrape.js  # 确保这里的路径和文件名正确
