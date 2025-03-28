@@ -1,35 +1,57 @@
-name: Visit HTML Page
+name: Puppeteer Visit HTML
 on:
   schedule:
-    - cron: '15 8 * * *'  # 每小时运行一次
-    
+    - cron: '33 8 * * *'  # 每天，五个参数时：分 时 日 月 周，也可六个或七个参数
+  workflow_dispatch:
+
 jobs:
   visit:
     runs-on: ubuntu-latest
+    timeout-minutes: 10   # 防止超时
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'      
-      - name: Install Puppeteer
+          node-version: '18'
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgbm-dev  # 解决 Chromium 依赖问题        
-          npm install puppeteer
-      - name: Visit Page
+          sudo apt-get install -y libgbm-dev  # 解决 Chromium 依赖问题
+          npm install puppeteer@latest
+
+      - name: Run Puppeteer
         run: |
           node <<EOF
           const puppeteer = require('puppeteer');
           (async () => {
-            const browser = await puppeteer.launch();
-            const page = await browser.newPage();
-            await page.goto('https://linmsh-real.github.io/kzz-web/');
-            await page.screenshot({ path: 'screenshot.png' });
-            await browser.close();
+            try {
+              const browser = await puppeteer.launch({
+                headless: 'new',           # 使用新版 Headless 模式
+                args: ['--no-sandbox']     # 解决 Linux 权限问题
+              });
+              const page = await browser.newPage();
+              
+              # 访问 HTML 文件（需先 checkout）
+              await page.goto('https://linmsh-real.github.io/kzz-web/');
+              
+              # 执行操作（如截图）
+              await page.screenshot({ path: 'screenshot.png' });
+              console.log('截图成功！');
+              
+              await browser.close();
+            } catch (error) {
+              console.error('Puppeteer 错误:', error);
+              process.exit(1);  # 明确退出并报错
+            }
           })();
           EOF
-      - uses: actions/upload-artifact@v3
+
+      - name: Upload screenshot
+        if: always()  # 即使失败也上传日志
+        uses: actions/upload-artifact@v3
         with:
-          name: screenshot
+          name: puppeteer-screenshot
           path: screenshot.png
