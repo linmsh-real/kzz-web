@@ -45,19 +45,40 @@ th, td {
 	background-color: rgb(248 202 171); /* 浅橙色#fff2e6 */
 }
 
+/* 奇数行 
+tr:nth-child(odd) {
+	background-color: #eee;
+}*/
+
 /* 最近十天涨幅榜明细 */
 #changepercentRecently {
 	margin-bottom: 20px;
 }
-#changepercentRecently td:nth-child(1) {
-	background-color: #eee;
+#changepercentRecently td:nth-child(1), #plummetRecently td:nth-child(1) {
+	background-color: #edf2fa;
 	width:45px;
+}
+#changepercentRecently .date, #plummetRecently .date {
+	background-color: rgb(220 228 234);
 }
 /* 最近十天涨幅榜明细-其他列设置相同宽度 */
 #changepercentRecently td:not(:nth-child(1)) {
 	width:90px;
 }
+.titleBg {
+	background-color: #edf2fa;
+}
 
 button {
 	margin-left: 30%;
+}
+
+/*高亮*/
+.highlight-column {
+	background-color: #ffeb3b!important; /* 黄色背景 */
+    font-weight: bold;
+}
+
+.cssCursor{
+	cursor: pointer; /* 鼠标悬停时显示手指形状的指针 */
 }

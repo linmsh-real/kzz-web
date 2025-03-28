@@ -17,8 +17,49 @@
 			$('#changepercentRecentlyPrint').click(function(){
 				printTable('changepercentRecently');
 			});
+			$('#plummetRecentlyPrint').click(function(){
+				printTable('plummetRecently');
+			});
+			//转债名称点击事件
+			$("#changepercentNumber").on('click', 'td', function(){
+				$("#chartAll td, #changepercentRecently td").removeClass("highlight-column");
+				var name=$(this).html();
+				// 获取当前单元格在行中的索引位置（从0开始）
+				var colIndex = $(this).index();
+				var highlightNames=$('#changepercentNumber').data('highlightNames') || {};
+				console.log('=name=', name);
+				if(highlightNames[name] != undefined && highlightNames[name] == colIndex) {
+					console.log('=移除高亮=');
+					$('#changepercentNumber').removeData('highlightNames');
+					return;
+				}
+				highlightNames = {};
+				highlightNames[name] = colIndex;
+				$('#changepercentNumber').data('highlightNames', highlightNames);
+				$("#chartAll td[title='"+name+"']").addClass("highlight-column");
+				// 遍历td元素
+				if(colIndex == 0) {
+					$("#changepercentRecently tr").each(function() {
+						$(this).find(":lt(6)").each(function() {
+							var title = $(this).html();
+							// 检查当前元素的title是否在目标数组中
+							if (title == name) {
+								$(this).addClass("highlight-column");
+							}
+						});
+					});
+				} else {
+					$("#changepercentRecently td").each(function() {
+						var title = $(this).html();
+						// 检查当前元素的title是否在目标数组中
+						if (title == name) {
+							$(this).addClass("highlight-column");
+						}
+					});
+				}
+			});
 		});
-		var amountDivisor = 100000000;
+		var maxHistoryLength = 20, amountDivisor = 100000000;
 		//获取历史数据
 		function getHistory(tradingTime){
 			$.ajax({
@@ -35,24 +76,27 @@
 						var changepercentData = getChangepercentData();
 						//获取前20成交额排名及交易总额
 						var amountData = getAmountData(), topData = amountData.topData, amountTotal = amountData.total;
-						var changepercentSaveData = makeSaveData(changepercentData, 'changepercent'), amountSaveData = makeSaveData(topData, 'amount');
+						//获取前20跌幅数据
+						var plummetData = getPlummetData();
+						var changepercentSaveData = makeSaveData(changepercentData, 'changepercent'), amountSaveData = makeSaveData(topData, 'amount'), plummetSaveData = makeSaveData(plummetData, 'changepercent');
 						var pushData = 	{
 							"tradingDay":tradingDay,
 							"ticktime":ticktime,
 							"changepercentData":changepercentSaveData,
 							"amountData":amountSaveData,
-							"amountTotal":amountTotal
+							"amountTotal":amountTotal,
+							"plummetData":plummetSaveData
 						}
 						//把最近一个交易日的数据加入历史数据
 						if(historyTradingDay == tradingDay) {
 							kzzData[dataIndex] = pushData;
 						} else {
 							kzzData.push(pushData);
+							kzzDataLength+=1;
 						}
 						//超过存储容量，截取
-						var maxLength = 20;
-						if(kzzDataLength > maxLength) {
-							kzzData = kzzData.slice(kzzDataLength - maxLength, kzzData.length);
+						if(kzzDataLength > maxHistoryLength) {
+							kzzData = kzzData.slice(kzzDataLength - maxHistoryLength, kzzData.length);
 						}
 						kzzDataLength=kzzData.length;
 					}
@@ -96,10 +140,7 @@
 				num:20,
 				sort:'changepercent',
 				asc:0,
-				node:'hskzz_z'
-				//node:hs_z
-				//date:2025-03-11
-				//_s_r_a:init
+				node:'hskzz_z'//node:hs_z //date:2025-03-11 //_s_r_a:init
 			};
 			var resultList = ajaxRequest(url, param);
 			return resultList;
@@ -132,6 +173,20 @@
 			}
 			result.total = total;
 			return result;
+		}
+		//获取前20跌幅数据
+		function getPlummetData() {
+			console.log('======获取跌幅排名=======');
+			var url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData'; 
+			var param={
+				page:1,
+				num:20,
+				sort:'changepercent',
+				asc:1,
+				node:'hskzz_z'
+			};
+			var resultList = ajaxRequest(url, param);
+			return resultList;
 		}
 		//添加历史数据
 		function savaHistoryData(bodyData) {
@@ -180,7 +235,7 @@
 				headContent += '<th colspan="2" class="thCol'+(++thColNumber)+'">' + parseInt(tradingDay.substring(4, 6)) + '-' + tradingDay.substring(6, 8) + '（'+amountTotal+'亿元）</th>\n';
 				secContent +='<td class="col1">涨幅（%）</td>\n<td class="col2">成交（亿）</td>\n';
 				for(var j=0; j<changepercentData.length; j++) {
-					var changepercent = Math.round(changepercentData[j].changepercent);
+					var changepercent = Math.round(changepercentData[j].changepercent), chaName=changepercentData[j].name;
 					var amount = amountData[j].amount;
 					amount = amount/amountDivisor;
 					amount = Math.round(amount);
@@ -188,7 +243,7 @@
 					if(i==startIndex) {
 						currDataContent += '<tr>\n'; 
 					}
-					currDataContent += '<td>'+formateName(changepercentData[j].name)+changepercent+'</td>\n'; 
+					currDataContent += '<td title="'+chaName+'">'+formateName(chaName)+changepercent+'</td>\n'; 
 					currDataContent += '<td>'+formateName(amountData[j].name)+amount+'</td>\n';
 					if(i==kzzDataLength-1) {
 						currDataContent += '</tr>\n'; 
@@ -206,45 +261,39 @@
 		}
 		//渲染过去五/十个交易日该可转债上涨幅榜前20的次数
 		function makeChangepercentNumberData(kzzDatas, kzzDataLength) {
-			var maxLength = 10, startIndex=0, top5={}, top10={}, chaNumberContent='', chaRecentlyContent='', dataContent = [];
+			var maxLength = 10, startIndex=0, top5={}, top10={}, chaNumberContent='', chaRecentlyContent='', pluRecentlyContent='', 
+				dataContent = [], plummetDataContent = [];
 			if(kzzDataLength > maxLength) {
 				startIndex=kzzDataLength - maxLength;
 			}
 			for(var i=kzzDataLength-1; i>=startIndex; i--) {
-			//for(var i=startIndex; i<kzzDataLength; i++) {
-				var data=kzzDatas[i], tradingDay = data.tradingDay+'', changepercentData=data.changepercentData;
+				var data=kzzDatas[i], tradingDay = data.tradingDay+'', changepercentData=data.changepercentData, plummetData=data.plummetData;
 				for(var j=0; j<changepercentData.length; j++) {
 					var name = changepercentData[j].name;
 					if(i >= kzzDataLength - 5) {
 						top5[name] = (top5[name] || 0) + 1;
 					}
 					top10[name] = (top10[name] || 0) + 1;
-					//组织历史可转债数据
-					var currDataContent = i==(kzzDataLength-1)?'':dataContent[j];
-					if(i==kzzDataLength-1) {
-						currDataContent += '<tr>\n'; 
-						currDataContent += '<td>榜'+(j+1)+'</td>\n'; 
-					}
-					currDataContent += '<td>'+changepercentData[j].name+'</td>\n'; 
-					if(i==startIndex) {
-						currDataContent += '</tr>\n'; 
-					}
-					if(i==kzzDataLength-1) {
-						dataContent.push(currDataContent);
-					} else {
-						dataContent[j]=currDataContent;
+					//组织涨幅榜html
+					makeChangepercentContent(i, j, startIndex, kzzDataLength, name, dataContent);
+					//组织跌幅榜html
+					if(plummetData) {
+						makeChangepercentContent(i, j, startIndex, kzzDataLength, plummetData[j].name, plummetDataContent);
 					}
 				}
 				//尾部日期
-				chaRecentlyContent += '<td>'+parseInt(tradingDay.substring(4, 6)) + '.' + tradingDay.substring(6, 8)+'</td>\n';
+				var kzzDate = parseInt(tradingDay.substring(4, 6)) + '.' + tradingDay.substring(6, 8);
+				chaRecentlyContent += '<td>'+kzzDate+'</td>\n';
+				pluRecentlyContent += '<td>'+kzzDate+'</td>\n';
 				if(i==startIndex) {
-					chaRecentlyContent=dataContent.join('') + '<tr style="background-color: rgb(220 228 234);">\n<td>日期</td>\n'+chaRecentlyContent+'</tr>\n';
+					chaRecentlyContent=dataContent.join('') + '<tr class="date">\n<td>日期</td>\n'+chaRecentlyContent+'</tr>\n';
+					pluRecentlyContent=plummetDataContent.join('') + '<tr class="date">\n<td>日期</td>\n'+pluRecentlyContent+'</tr>\n';
 				}
 			}
 			
-			var top5Sort = sortData(top5);
+			var top5Sort = sortData(top5, 1);
 			console.log('==top5==', top5Sort);
-			var top10Sort = sortData(top10);
+			var top10Sort = sortData(top10, 2);
 			console.log('==top10==', top10Sort);
 			//渲染涨幅榜前20的次数
 			var latestDatas = kzzDatas[kzzDataLength - 1], tradingDay=latestDatas.tradingDay+'', changepercentData=latestDatas.changepercentData, 
@@ -255,12 +304,12 @@
 			for(var i=0; i<maxLength; i++) {
 				chaNumberContent+='<tr>\n';
 				if(top5Sort.length > i) {
-					chaNumberContent+='<td>'+top5Sort[i].key+'</td><td>'+top5Sort[i].value+'</td>\n';
+					chaNumberContent+='<td class="cssCursor">'+top5Sort[i].key+'</td><td>'+top5Sort[i].value+'</td>\n';
 				} else {
 					chaNumberContent+='<td></td><td></td>\n';
 				}
 				if(top10Sort.length > i) {
-					chaNumberContent+='<td>'+top10Sort[i].key+'</td><td>'+top10Sort[i].value+'</td>\n';
+					chaNumberContent+='<td class="cssCursor">'+top10Sort[i].key+'</td><td>'+top10Sort[i].value+'</td>\n';
 				} else {
 					chaNumberContent+='<td></td><td></td>\n';
 				}
@@ -272,7 +321,25 @@
 				chaNumberContent+='</tr>\n';
 			}
 			$('#changepercentNumber').append(chaNumberContent);
-			$('#changepercentRecently').html(chaRecentlyContent);
+			$('#changepercentRecently').append(chaRecentlyContent);
+			$('#plummetRecently').append(pluRecentlyContent);
+		}
+		//组织涨跌幅html数据
+		function makeChangepercentContent(i, j, startIndex, kzzDataLength, name, dataContent) {
+			var currDataContent = i==(kzzDataLength-1)?'':dataContent[j];
+			if(i==kzzDataLength-1) {
+				currDataContent += '<tr>\n'; 
+				currDataContent += '<td>榜'+(j+1)+'</td>\n'; 
+			}
+			currDataContent += '<td>'+name+'</td>\n'; 
+			if(i==startIndex) {
+				currDataContent += '</tr>\n'; 
+			}
+			if(i==kzzDataLength-1) {
+				dataContent.push(currDataContent);
+			} else {
+				dataContent[j]=currDataContent;
+			}
 		}
 		//格式化name
 		function formateName(name) {
@@ -289,10 +356,10 @@
 		function endsWithNumber(str) {
 			return /\d$/.test(str);
 		}
-		function sortData(data) {
+		function sortData(data, filterValue) {
 			console.log('=排序过滤前数据=', data);
 			const sortedArray = Object.entries(data)
-			   .filter(([key, value]) => value !== 1)  // 过滤掉 value === 1
+			   .filter(([key, value]) => value > filterValue)  // 过滤掉 value === 1
 			  .sort((a, b) => b[1] - a[1]) // 降序排序
 			  .map(([key, value]) => ({ key, value }));
 			  return sortedArray;
@@ -341,7 +408,7 @@
 <br>
 <table id="changepercentNumber">
     <tr>
-        <th colspan="5" style="background-color: #eee;">过去五/十个交易日该可转债上涨幅榜前20的次数</th>
+        <th colspan="5" class="titleBg">过去五/十个交易日该可转债上涨幅榜前20的次数</th>
     </tr>
     
     <tr>
@@ -357,9 +424,20 @@
 
 <br>
 <table id="changepercentRecently">
+    <tr>
+        <th colspan="11" class="titleBg">涨幅榜</th>
+    </tr>
 </table>
 <br>
-<button id="changepercentRecentlyPrint" type="button">打印明细</button>
+<button id="changepercentRecentlyPrint" type="button">打印涨幅明细</button>
+
+<table id="plummetRecently">
+    <tr>
+        <th colspan="11" class="titleBg">跌幅榜</th>
+    </tr>
+</table>
+<br>
+<button id="plummetRecentlyPrint" type="button">打印跌幅明细</button>
 
 </body>
 </html>
