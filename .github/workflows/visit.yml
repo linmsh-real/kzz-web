@@ -52,7 +52,7 @@ jobs:
       - name: Upload Screenshot
         uses: actions/upload-artifact@v4  # 使用 v4 版本
         if: always()  # 即使失败也上传日志
-        uses: actions/upload-artifact@v3
+        #uses: actions/upload-artifact@v3
         with:
           name: puppeteer-screenshot
           path: screenshot.png
