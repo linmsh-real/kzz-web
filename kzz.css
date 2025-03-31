@@ -82,3 +82,9 @@ button {
 .cssCursor{
 	cursor: pointer; /* 鼠标悬停时显示手指形状的指针 */
 }
+
+.grid-container {
+	display: grid;
+	grid-template-columns: auto auto;
+	gap: 20px;
+}
