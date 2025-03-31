@@ -86,7 +86,7 @@
 		function getLatestTradingDay() {
 			$.ajax({
 				type: 'GET',
-				url: 'http://qt.gtimg.cn/q=sh601377',//sz123191
+				url: 'https://qt.gtimg.cn/q=sh601377',//sz123191
 				success: function(data,textStatus,jqXHR){
 					var dataArray = data.split('~');
 					var tradingDay = dataArray[30];
