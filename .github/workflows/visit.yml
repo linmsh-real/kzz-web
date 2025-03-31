@@ -1,7 +1,7 @@
 name: Puppeteer Visit HTML
 on:
   schedule:
-    - cron: '30 8 * * *'  # 每天，五个参数时：分 时 日 月 周，也可六个或七个参数
+    - cron: '5 9 * * *'  # 每天，五个参数时：分 时 日 月 周，也可六个或七个参数
   workflow_dispatch:
 
 jobs:
