@@ -83,6 +83,7 @@ button {
 	cursor: pointer; /* 鼠标悬停时显示手指形状的指针 */
 }
 
+/**grid 布局-两个表格显示一行*/
 .grid-container {
 	display: grid;
 	grid-template-columns: auto auto;

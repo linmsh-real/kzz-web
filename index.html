@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<title>可转债排行</title>
+	<meta charset="UTF-8">
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<!--<script src="js/jquery-3.7.1.min.js"></script>-->
 	<link href="kzz.css" rel="stylesheet" media="all">
@@ -100,17 +102,30 @@
 		}
 		//获取前20涨跌幅数据
 		function getChangepercentData() {
-			console.log('======获取涨跌幅排名=======');
+			var result = [], page=1, num=20;
 			var url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData'; 
-			var param={
-				page:1,
-				num:20,
-				sort:'changepercent',
-				asc:0,
-				node:'hskzz_z'//node:hs_z //date:2025-03-11 //_s_r_a:init
-			};
-			var resultList = ajaxRequest(url, param);
-			return resultList;
+			while(true) {
+				console.log('======获取涨幅排名,'+page+'=======');
+				var param={
+					page:page,
+					num:num,
+					sort:'changepercent',
+					asc:0,
+					node:'hskzz_z'//node:hs_z //date:2025-03-11 //_s_r_a:init
+				};
+				var resultList = ajaxRequest(url, param), needDataLen=20-result.length;
+				var resultListFilter = resultList.filter(item => parseFloat(item.changepercent+'') != 0);
+				if(resultListFilter.length>needDataLen) {
+					resultListFilter = resultListFilter.slice(0, needDataLen);
+				}
+				result=result.concat(resultListFilter);
+				console.log('======获取涨幅排名,result=======', result);
+				if(result.length >= 20 || resultList.length < num) {
+					break;
+				}
+				page++;
+			}
+			return result;
 		}
 		//获取前20成交额排名及交易总额
 		function getAmountData() {
@@ -143,17 +158,30 @@
 		}
 		//获取前20跌幅数据
 		function getPlummetData() {
-			console.log('======获取跌幅排名=======');
+			var result = [], page=1, num=20;
 			var url = 'https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData'; 
-			var param={
-				page:1,
-				num:20,
-				sort:'changepercent',
-				asc:1,
-				node:'hskzz_z'
-			};
-			var resultList = ajaxRequest(url, param);
-			return resultList;
+			while(true) {
+				console.log('======获取涨跌幅排名,'+page+'=======');
+				var param={
+					page:page,
+					num:num,
+					sort:'changepercent',
+					asc:1,
+					node:'hskzz_z'
+				};
+				var resultList = ajaxRequest(url, param), needDataLen=20-result.length;
+				var resultListFilter = resultList.filter(item => parseFloat(item.changepercent+'') != 0);
+				if(resultListFilter.length>needDataLen) {
+					resultListFilter = resultListFilter.slice(0, needDataLen);
+				}
+				result=result.concat(resultListFilter);
+				console.log('======获取跌幅排名,result=======', result);
+				if(result.length >= 20 || resultList.length < num) {
+					break;
+				}
+				page++;
+			}
+			return result;
 		}
 		//添加历史数据
 		function savaHistoryData(bodyData) {
