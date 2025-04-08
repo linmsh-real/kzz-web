@@ -76,7 +76,7 @@
 					if(isSaveData) {
 						//添加历史数据
 						var dataString = JSON.stringify(kzzData);
-						savaHistoryData(dataString);
+						savaHistoryData(dataString, data);
 					}
 				},
 				error: function(jqXHR,textStatus){
@@ -184,7 +184,7 @@
 			return result;
 		}
 		//添加历史数据
-		function savaHistoryData(bodyData) {
+		function savaHistoryData(bodyData, historyDatas) {
 			$.ajax({
 				type: 'PATCH',
 				url: 'https://gitee.com/api/v5/repos/linmsh/kzz-web/comments/39024058',
@@ -201,11 +201,18 @@
 				}
 			});
 			//github 获取文件commit的评论 https://api.github.com/repos/linmsh-real/kzz-web/commits/43d5c6c45d119f9d25e1be0f002e514685675eb1/comments
+			var encodedData;
+			for(var i=1; i<historyDatas.length; i++) {
+				var body = historyDatas[i].body;
+				if(body.indexOf('githubToken') == 0) {
+					encodedData=body.split(' ')[1];
+					break;
+				}
+			}
 			var data = {
 					"body": bodyData
 				};
 			// 假设encodedData是Base64编码的字符串
-			var encodedData = "Z2hwX3RxOUdTa3N2SndZdWVKZlJGc1p0Vno1OTRRU1Z0ZzBPWVNVbw=="; // token 的 Base64 编码
 			// 使用atob()方法进行解码
 			var decodedData = atob(encodedData);
 			// 解码后的数据是一个二进制字符串，可以转换为UTF-8字符串（如果需要）
