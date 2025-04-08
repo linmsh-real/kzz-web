@@ -80,7 +80,7 @@
 					}
 				},
 				error: function(jqXHR,textStatus){
-					console.log("请求失败，请稍后重试!");
+					alert("获取历史数据失败，请稍后重试!");
 				}
 			});
 		}
@@ -96,7 +96,7 @@
 					getHistory(tradingDay);
 				},
 				error: function(jqXHR,textStatus){
-					console.log("请求失败，请稍后重试!");
+					console.log("获取股票最近一个交易日失败，请稍后重试!");
 				}
 			});
 		}
@@ -194,10 +194,32 @@
 				},
 				//contentType: 'application/json; charset=utf-8',
 				success: function(data,textStatus,jqXHR){
-					console.log('==添加历史数据==', data);
+					console.log('==添加历史数据返回结果==', data);
 				},
 				error: function(jqXHR,textStatus){
-					console.log("请求失败，请稍后重试!");
+					alert("添加历史数据失败，请稍后重试!");
+				}
+			});
+			//github 获取文件commit的评论 https://api.github.com/repos/linmsh-real/kzz-web/commits/43d5c6c45d119f9d25e1be0f002e514685675eb1/comments
+			var data = {
+					"body": bodyData
+				};
+			$.ajax({
+				type: 'POST',
+				url: 'https://api.github.com/repos/linmsh-real/kzz-web/comments/154987230',
+				headers : {
+					"Authorization": "token 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",
+					"Accept": "application/vnd.github.v3+json"
+				},
+				// 设置内容类型为JSON
+				contentType: 'application/json; charset=utf-8',
+				// 将JavaScript对象转换为JSON字符串
+				data : JSON.stringify(data),
+				success: function(data,textStatus,jqXHR){
+					console.log('==添加历史数据备份返回结果==', data);
+				},
+				error: function(jqXHR,textStatus){
+					console.error("添加历史数据备份失败，请稍后重试!", jqXHR);
 				}
 			});
 		}
