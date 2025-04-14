@@ -273,8 +273,8 @@
 					if(i==startIndex) {
 						currDataContent += '<tr>\n'; 
 					}
-					currDataContent += '<td title="'+chaName+'">'+formateName(chaName)+changepercent+'</td>\n'; 
-					currDataContent += '<td>'+formateName(amountData[j].name)+amount+'</td>\n';
+					currDataContent += '<td title="'+chaName+'" title="'+chaName+'">'+formateName(chaName)+changepercent+'</td>\n'; 
+					currDataContent += '<td title="'+amountData[j].name+'">'+formateName(amountData[j].name)+amount+'</td>\n';
 					if(i==kzzDataLength-1) {
 						currDataContent += '</tr>\n'; 
 					}
@@ -340,7 +340,7 @@
 					chaNumberContent+='<td></td><td></td>\n';
 				}
 				if(changepercentData.length > i) {
-					chaNumberContent+='<td>'+changepercentData[i].name+'</td>\n';
+					chaNumberContent+='<td class="cssCursor">'+changepercentData[i].name+'</td>\n';
 				} else {
 					chaNumberContent+='<td></td>\n';
 				}
@@ -410,7 +410,7 @@
 			highlightNames[name] = colIndex;
 			tableObj.data('highlightNames', highlightNames);
 			if(allDataObjId) {
-				$("#"+allDataObjId).find("td[title='"+name+"']").addClass("highlight-column");
+				$("#"+allDataObjId).find("td:nth-child(odd)[title='"+name+"']").addClass("highlight-column");
 			}
 			// 遍历td元素
 			if(colIndex == 0) {
